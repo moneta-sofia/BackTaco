@@ -27,15 +27,14 @@ router.get("/", async (req, res) => {
   router.post("/", async (req, res) => {
     const {name} = req.body;
     try {
-      const categories = await Category.find();
-      categories.forEach((category) => {
-        if (category.name === name) {
-          return res.status(400).send("Category already exists");
-        }
-      })
+    // Verificar si la categoría ya existe
+    const existingCategory = await Category.findOne({ name });
+    if (existingCategory) {
+      return res.status(400).send("Category already exists");
+    }
       const newCategory = new Category({ name });
       await newCategory.save();
-      res.send(newCategory).status(201);
+      res.status(201).send(newCategory);
 
     } catch (err) {
       console.error(err);
@@ -43,9 +42,18 @@ router.get("/", async (req, res) => {
     }
   });
 
+  
+  router.delete("/:name", async (req, res) => {
+    const {name} = req.params;
 
-
-
+    try {
+      const existingCategory = await Category.findOneAndDelete({ name });
+      res.status(201).send("Category deleted!");
+    }catch (err) {
+      console.log(err);
+      res.status(500).send("Error deleting record");
+    }
+  })
 
 
   export default router;
