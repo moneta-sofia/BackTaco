@@ -24,21 +24,24 @@ router.get("/", async (req, res) => {
 
 
 
-  // router.post("/", async (req, res) => {
-  //   try {
-  //     let newDocument = {
-  //       urlImagen: req.body.urlImagen,
-  //       description: req.body.description,
-  //     };
-  //     let collection = await db.collection("categorys");
-  //     let result = await collection.insertOne(newDocument);
-  //     res.send(result).status(204);
-  //   } catch (err) {
-  //     console.error(err);
-  //     console.log("--------------------------------");
-  //     res.status(500).send("Error adding record");
-  //   }
-  // });
+  router.post("/", async (req, res) => {
+    const {name} = req.body;
+    try {
+      const categories = await Category.find();
+      categories.forEach((category) => {
+        if (category.name === name) {
+          return res.status(400).send("Category already exists");
+        }
+      })
+      const newCategory = new Category({ name });
+      await newCategory.save();
+      res.send(newCategory).status(201);
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Error adding record");
+    }
+  });
 
 
 
