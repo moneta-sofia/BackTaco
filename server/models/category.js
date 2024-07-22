@@ -10,7 +10,7 @@ const imageSchema = new Schema({
         type: String,
         required: true
     },
-    name: String
+    description: String
 });
 
 const categorySchema = new Schema({
