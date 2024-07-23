@@ -11,6 +11,10 @@ const imageSchema = new Schema({
         required: true
     },
     description: String,
+    position: {
+        type: Number,
+        required: true
+      },
     categoryId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
