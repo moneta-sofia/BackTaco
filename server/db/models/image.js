@@ -10,16 +10,13 @@ const imageSchema = new Schema({
         type: String,
         required: true
     },
-    description: String
-});
-
-const categorySchema = new Schema({
-    name:{
-        type: String,
+    description: String,
+    categoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
         required: true
-    },
-    images: [imageSchema]
+    }
 });
 
-const Category = mongoose.model('Category', categorySchema);
-export { Category, imageSchema };
+const Image = mongoose.model('Image',imageSchema);
+export {Image};
