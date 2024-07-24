@@ -39,6 +39,20 @@ export async function postImage(req, res) {
     }
 }
 
+async function updateImagesPositionPost(initialPosition, categoryId){
+    try {
+        // const images = await Image.find({ categoryId: categoryId }).sort({ position: 1 });
+        await Image.updateMany(
+            { categoryId, position: { $gte: initialPosition } },
+            { $inc: { position: + 1 } }
+        );
+    } catch (error) {
+        console.error(error);
+        console.log('Error updating positions');
+    }
+}
+
+
 export async function updateImage(req, res) {
     const { idImage } = req.params;
     const { name, description, position } = req.body;
@@ -54,34 +68,6 @@ export async function updateImage(req, res) {
             { new: true, runValidators: true } // Opciones para devolver el documento actualizado y ejecutar validadores
         );
         res.send(updatedImage);
-    } catch (error) {
-
-    }
-}
-
-export async function deleteImage(req, res) {
-    const { idImage } = req.params;
-    try {
-        const image = await Image.findByIdAndDelete(idImage);
-        if (!image) {
-            return res.status(404).send("Image not found");
-        }
-
-        res.send("Image deleted!");
-
-    } catch (error) {
-        console.error(err);
-        res.status(500).send('Error deleting image');
-    }
-}
-
-async function updateImagesPositionPost(initialPosition, categoryId){
-    try {
-        // const images = await Image.find({ categoryId: categoryId }).sort({ position: 1 });
-        await Image.updateMany(
-            { categoryId, position: { $gte: initialPosition } },
-            { $inc: { position: + 1 } }
-        );
     } catch (error) {
         console.error(error);
         console.log('Error updating positions');
@@ -108,5 +94,35 @@ async function updateImagesPositionUpdate(initialPosition, finalPosition , categ
     } catch (error) {
         console.error(error);
         console.log('Error updating positions');
+    }
+}
+
+export async function deleteImage(req, res) {
+    const { idImage } = req.params;
+    try {
+        const image = await Image.findById(idImage);
+        if (!image) {
+            return res.status(404).send("Image not found");
+        }
+        await updateImagesPositionDelete(image);        
+
+        const result = await Image.findByIdAndDelete(idImage);
+        res.send( "Image deleted: " + result);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error deleting image');
+    }
+}
+
+export async function updateImagesPositionDelete(image) {
+    try{
+        const categoryId = image.categoryId;
+        await Image.updateMany(
+            {categoryId , position: { $gte : image.position }},
+            { $inc : { position : -1 }}
+        )
+    } catch (error) {
+        console.error(error);
     }
 }
