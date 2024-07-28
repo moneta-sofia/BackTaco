@@ -1,7 +1,7 @@
 import { Category } from "../db/models/category.js";
 import { Image } from "../db/models/image.js";
 import { storage } from "../src/config/firebase.config.js";
-import { ref, uploadBytesResumable, getDownloadURL  } from "firebase/storage";
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject  } from "firebase/storage";
 
 export async function getAllImagesByCategory(req, res) {
     const { categoryName } = req.params
@@ -120,6 +120,10 @@ export async function deleteImage(req, res) {
         if (!image) {
             return res.status(404).send("Image not found");
         }
+
+        const desertRef = ref(storage, image.url);
+        await deleteObject(desertRef)
+
         await updateImagesPositionDelete(image);        
 
         const result = await Image.findByIdAndDelete(idImage);
