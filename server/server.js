@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
-import category from "./routes/categories.js";
-import images from "./routes/images.js";
+import category from "./routes/categoriesRoute.js";
+import images from "./routes/imagesRoute.js";
 import dotenv from "dotenv"
 dotenv.config();
 const PORT = process.env.PORT || 5050;

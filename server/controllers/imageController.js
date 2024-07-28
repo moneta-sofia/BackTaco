@@ -1,6 +1,7 @@
 import { Category } from "../db/models/category.js";
 import { Image } from "../db/models/image.js";
-import { ObjectId } from "mongodb";
+import { storage } from "../src/config/firebase.config.js";
+import { ref, uploadBytesResumable, getDownloadURL  } from "firebase/storage";
 
 export async function getAllImagesByCategory(req, res) {
     const { categoryName } = req.params
@@ -21,16 +22,31 @@ export async function getAllImagesByCategory(req, res) {
 }
 
 export async function postImage(req, res) {
-    const { url, name, description, position } = req.body;
+    const {name, description, position } = req.body;
+    const file = req.file
     const { categoryName } = req.params;
+
+    if (!file) {
+        return res.status(400).send("No file uploaded.");
+    }
+
     try {
         const category = await Category.findOne({ name: categoryName });
         const categoryId = category._id;
         if (!category) {
             return res.status(404).send("Cannot upload an image if the category does not exist");
         }
+
+        const storageRef = ref(storage, `files/${categoryName}/${ name + Date.now() }`);
+        const metadata = {
+            contentType: file.mimetype,
+        };
+        const snapshot = await uploadBytesResumable(storageRef, file.buffer, metadata);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        console.log('File successfully uploaded.');
+
         await updateImagesPositionPost(position,categoryId)
-        const newImage = new Image({ url, name, description, position, categoryId });
+        const newImage = new Image({ url: downloadURL, name, description, position, categoryId });
         await newImage.save();
         res.status(201).send(newImage);
     } catch (err) {
