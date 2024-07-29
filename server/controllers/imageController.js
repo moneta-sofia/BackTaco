@@ -121,9 +121,9 @@ export async function deleteImage(req, res) {
             return res.status(404).send("Image not found");
         }
 
-        const desertRef = ref(storage, image.url);
+        const filePath = image.url.split('/o/')[1].split('?')[0];
+        const desertRef = ref(storage, decodeURIComponent(filePath));
         await deleteObject(desertRef)
-
         await updateImagesPositionDelete(image);        
 
         const result = await Image.findByIdAndDelete(idImage);
