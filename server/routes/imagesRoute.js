@@ -3,8 +3,6 @@ import db from '../db/connection.js'
 import { deleteImage, getAllImagesByCategory, postImage, updateImage } from '../controllers/imageController.js';
 import { upload } from '../middleware/multerConfig.js';
 
-const app = express();
-app.use(express.json());
 const router = express.Router();
 
 router.get('/:categoryName', getAllImagesByCategory)

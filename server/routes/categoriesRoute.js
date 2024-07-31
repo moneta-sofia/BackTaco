@@ -3,9 +3,6 @@ import db from "../db/connection.js";
 import { createCategory, deleteCategoryByName, getAllCategories, getCategoryByName } from "../controllers/categoryController.js";
 
 
-
-const app = express();
-app.use(express.json());
 const router = express.Router();
 
 

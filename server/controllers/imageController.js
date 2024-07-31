@@ -93,7 +93,7 @@ export async function updateImage(req, res) {
 async function updateImagesPositionUpdate(initialPosition, finalPosition , categoryId) {
     try {
         if (initialPosition === finalPosition) {
-            return; // No hacer nada si la posición no cambia
+            return; 
         }
 
         if (initialPosition < finalPosition) { 

@@ -8,7 +8,7 @@ export async function getAllCategories(req, res) {
         res.send(categoriesPlain).status(200);
     } catch (err) {
         console.error(err);
-        res.status(500).send("Error fetching records");
+        res.status(500).send("Error fetching category");
     }
 }
 
