@@ -47,7 +47,7 @@ export async function deleteCategoryByName(req, res) {
     const { name } = req.params;
     try {
         const existingCategory = await Category.findOneAndDelete({ name });
-        res.status(201).send("Category deleted!");
+        res.status(200).send("Category deleted!");
     } catch (err) {
         console.log(err);
         res.status(500).send("Error deleting record");
