@@ -1,4 +1,3 @@
-
 import { User } from "../db/models/user.js";
 import { Role } from "../db/models/role.js";
 import * as bcrypt from "bcrypt";
@@ -23,10 +22,8 @@ export async function signin(req, res) {
     const { user, password } = req.body;
     try {
         const userFound = await User.findOne({ user });
-        console.log(userFound);
-        console.log(await bcrypt.compare(password, userFound.password));
         if (userFound && await bcrypt.compare( password,userFound.password)) {
-            const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET)
+            const token = jwt.sign({ id: userFound._id }, process.env.JWT_SECRET)
             res.json({ token });
         } else {
             res.status(401).send('Invalid credentials');
