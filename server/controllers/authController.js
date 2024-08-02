@@ -13,8 +13,7 @@ export async function signup(req, res) {
         await createUser.save();
         res.status(201).send(user);
     } catch (error) {
-        console.log(error);
-        res.status(500).send("Error creating user");
+        res.status(500).send("Error creating user" + error.message);
     }
 }
 
@@ -29,7 +28,6 @@ export async function signin(req, res) {
             res.status(401).send('Invalid credentials');
         }
     } catch (error) {
-        console.log(error);
-        res.status(500).send("Error logging in");
+        res.status(500).send("Error logging in"+ error.message);
     }
 }
