@@ -7,6 +7,10 @@ import jwt from "jsonwebtoken"
 export async function signup(req, res) {
     const { email, user, password } = req.body;
     try {
+        const existingUser = await User.findOne({ user });
+        if(existingUser){return res.status(400).send("User already exists");}
+        const existingEmail = await User.findOne({ email });
+        if(existingEmail){return res.status(400).send("Email already exists");}
         const hashPassword = await bcrypt.hash(password, 15);
         const role = await Role.findOne({ name: "noRole" });
         const createUser = new User({ email, user, password: hashPassword, role });
