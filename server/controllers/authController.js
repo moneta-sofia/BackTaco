@@ -11,7 +11,8 @@ export async function signup(req, res) {
         const role = await Role.findOne({ name: "noRole" });
         const createUser = new User({ email, user, password: hashPassword, role });
         await createUser.save();
-        res.status(201).send(user);
+        const token = jwt.sign({ id: createUser._id }, process.env.JWT_SECRET)
+        res.json({token});
     } catch (error) {
         res.status(500).send("Error creating user" + error.message);
     }
