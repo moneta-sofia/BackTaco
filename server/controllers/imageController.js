@@ -1,6 +1,7 @@
 import { Category } from '../db/models/category.js';
 import { Image } from '../db/models/image.js';
 import { storage } from '../src/config/firebase.config.js';
+import {ObjectId} from 'mongodb'
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 
 export async function getAllImagesByCategory(req, res) {
@@ -101,6 +102,32 @@ async function updateImagesPositionUpdate(initialPosition, finalPosition, catego
 	}
 }
 
+export async function updateAllImagesPosition(req, res) {
+    const { categoryName } = req.params;
+    const updatedImages = req.body;
+    try {
+        const category = await Category.findOne({ name: categoryName });
+        if (!category) {
+            return res.status(404).send('Category not found');
+        }
+        const bulkOps = updatedImages.map(({ _id, position }) => (
+            {   updateOne: {
+                filter: { _id: {_id} },
+                update: { $set: {position} }
+            }
+        }));
+
+        const result = await Image.bulkWrite(bulkOps);
+
+        res.status(200).send("Positions edited successfully " + result);
+
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error updating image positions');
+    }
+}
+
 export async function deleteImage(req, res) {
 	const { idImage } = req.params;
 	try {
@@ -121,8 +148,7 @@ export async function deleteImage(req, res) {
 		res.status(500).send('Error deleting image');
 	}
 }
-
-export async function updateImagesPositionDelete(image) {
+async function updateImagesPositionDelete(image) {
 	try {
 		const categoryId = image.categoryId;
 		await Image.updateMany({ categoryId, position: { $gte: image.position } }, { $inc: { position: -1 } });
