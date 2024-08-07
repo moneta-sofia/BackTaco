@@ -117,10 +117,8 @@ export async function updateAllImagesPosition(req, res) {
             }
         }));
 
-        const result = await Image.bulkWrite(bulkOps);
-
-        res.status(200).send("Positions edited successfully " + result);
-
+        const result = await Image.bulkWrite(bulkOps);		
+        res.status(200).send("Positions edited successfully " + JSON.stringify(result));	
         
     } catch (error) {
         console.error(error);
