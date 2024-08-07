@@ -110,7 +110,8 @@ export async function updateAllImagesPosition(req, res) {
         if (!category) {
             return res.status(404).send('Category not found');
         }
-        const bulkOps = updatedImages.map(({ _id, position }) => (
+		let arrayUpdateImage = Object.values(updatedImages)
+        const bulkOps = arrayUpdateImage.map(({ _id, position }) => (
             {   updateOne: {
                 filter: { _id: {_id} },
                 update: { $set: {position} }
