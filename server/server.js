@@ -11,14 +11,18 @@ const PORT = process.env.PORT || 5050;
 const app = express();
 
 // Allow CORS from your frontend domain
-const allowedOrigins = ['https://tacoportfolio.netlify.app'];
+const allowedOrigins = ['tacoportfolio.netlify.app'];
 
 app.use(cors({
-	origin: allowedOrigins,
-	methods: ['GET', 'POST', 'PUT', 'DELETE'],
-	allowedHeaders: ['Content-Type', 'Authorization'], // Incluye Authorization si usas tokens
-	credentials: true, // Si necesitas enviar cookies o tokens en las solicitudes
-  }));
+	origin: function (origin, callback) {
+		if (!origin || allowedOrigins.includes(origin)) {
+			callback(null, true);
+		} else {
+			callback(new Error("Cors denied")
+			);
+		}
+	}
+}));
 
 app.use(express.json());
 app.use('/categories', category);
