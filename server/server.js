@@ -15,6 +15,8 @@ const allowedOrigins = ['tacoportfolio.netlify.app'];
 
 app.use(cors({
 	origin: function (origin, callback) {
+		console.log("test origin ",  origin);
+		
 		if (!origin || allowedOrigins.includes(origin)) {
 			callback(null, true);
 		} else {
