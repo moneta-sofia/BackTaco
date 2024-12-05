@@ -13,12 +13,12 @@ const app = express();
 // Allow CORS from your frontend domain
 const allowedOrigins = ['https://tacoportfolio.netlify.app'];
 
-app.use((req, res, next) => {
-	res.setHeader("Access-Control-Allow-Origin", "*");
-	res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT");
-	res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-	next();
-})
+app.use(cors({
+	origin: allowedOrigins,
+	methods: ['GET', 'POST', 'PUT', 'DELETE'],
+	allowedHeaders: ['Content-Type', 'Authorization'], // Incluye Authorization si usas tokens
+	credentials: true, // Si necesitas enviar cookies o tokens en las solicitudes
+  }));
 
 app.use(express.json());
 app.use('/categories', category);
