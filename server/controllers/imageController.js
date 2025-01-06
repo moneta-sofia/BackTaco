@@ -21,12 +21,19 @@ export async function getAllImagesByCategory(req, res) {
 }
 
 export async function postImage(req, res) {
-	const { name, description, position } = req.body;
+	const { name, description, position, urlVideo } = req.body;
 	const file = req.file;
 	const { categoryName } = req.params;
 
-	if (!file) {
-		return res.status(400).send('No file uploaded.');
+	if (!position) {
+		return res.status(400).send('Position is required' );
+	}
+	if (!name) {
+		return res.status(400).send('Position is required' );
+	}
+
+	if (!file && !urlVideo) {
+		return res.status(400).send('No file or video uploaded.' );
 	}
 
 	try {
@@ -35,19 +42,26 @@ export async function postImage(req, res) {
 		if (!category) {
 			return res.status(404).send('Cannot upload an image if the category does not exist');
 		}
+		if (file) {
+			const storageRef = ref(storage, `files/${categoryName}/${name + Date.now()}`);
+			const metadata = {
+				contentType: file.mimetype,
+			};
+			const snapshot = await uploadBytesResumable(storageRef, file.buffer, metadata);
+			const downloadURL = await getDownloadURL(snapshot.ref);
+			console.log('File successfully uploaded.');
+	
+			await updateImagesPositionPost(position, categoryId);
+			const newImage = new Image({ url: downloadURL, name, description, position, categoryId });
+			await newImage.save();
+			res.status(201).send(newImage);
+		} else if (urlVideo) {
+			await updateImagesPositionPost(position, categoryId);
+			const newImage = new Image({ url: urlVideo, name, description, position, categoryId });
+			await newImage.save();
+			return res.status(200).send('recived video '+ urlVideo);
+		}
 
-		const storageRef = ref(storage, `files/${categoryName}/${name + Date.now()}`);
-		const metadata = {
-			contentType: file.mimetype,
-		};
-		const snapshot = await uploadBytesResumable(storageRef, file.buffer, metadata);
-		const downloadURL = await getDownloadURL(snapshot.ref);
-		console.log('File successfully uploaded.');
-
-		await updateImagesPositionPost(position, categoryId);
-		const newImage = new Image({ url: downloadURL, name, description, position, categoryId });
-		await newImage.save();
-		res.status(201).send(newImage);
 	} catch (err) {
 		console.error(err);
 		res.status(500).send('Error posting image');
