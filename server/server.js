@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 5050;
 const app = express();
 
 // Allow CORS from your frontend domain
-const allowedOrigins = ['https://tacoportfolio.netlify.app'];
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
 
 app.use(cors({
 	origin: function (origin, callback) {
