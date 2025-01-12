@@ -10,6 +10,6 @@ router.get('/:categoryName', getAllImagesByCategory);
 router.post('/:categoryName', authenticate, authorize('admin'), upload.single('filename'), postImage);
 router.put('/:categoryName/:idImage', authenticate, authorize('admin'), updateImage);
 router.put('/:categoryName/', authenticate, authorize('admin'), updateAllImagesPosition);
-router.delete('/:categoryName/:idImage', authenticate, authorize('admin'), deleteImage);
+router.delete('/:idImage', authenticate, authorize('admin'), deleteImage);
 
 export default router;
