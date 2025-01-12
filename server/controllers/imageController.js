@@ -148,8 +148,7 @@ export async function deleteImage(req, res) {
 		if (!image) {
 			return res.status(404).send('Image not found');
 		}
-
-		if(image.url.includes('https://www.youtube.com/') ){
+		if(image.url.includes('https://www.youtube.com/')  || image.url.includes('https://youtu.be/')){
 			await updateImagesPositionDelete(image);
 			const result = await Image.findByIdAndDelete(idImage);
 			res.send('Image deleted: ' + result);
