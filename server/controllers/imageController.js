@@ -149,13 +149,22 @@ export async function deleteImage(req, res) {
 			return res.status(404).send('Image not found');
 		}
 
-		const filePath = image.url.split('/o/')[1].split('?')[0];
-		const desertRef = ref(storage, decodeURIComponent(filePath));
-		await deleteObject(desertRef);
-		await updateImagesPositionDelete(image);
+		if(image.url.includes('https://www.youtube.com/') ){
+			await updateImagesPositionDelete(image);
+			const result = await Image.findByIdAndDelete(idImage);
+			res.send('Image deleted: ' + result);
+			return
+		} else {
+			const filePath = image.url.split('/o/')[1].split('?')[0];
+			const desertRef = ref(storage, decodeURIComponent(filePath));
+			await deleteObject(desertRef);
+			await updateImagesPositionDelete(image);
+	
+			const result = await Image.findByIdAndDelete(idImage);
+			res.send('video deleted: ' + result);
+			return
+		}
 
-		const result = await Image.findByIdAndDelete(idImage);
-		res.send('Image deleted: ' + result);
 	} catch (error) {
 		console.error(error);
 		res.status(500).send('Error deleting image');
