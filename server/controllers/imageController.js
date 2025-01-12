@@ -49,7 +49,6 @@ export async function postImage(req, res) {
 			};
 			const snapshot = await uploadBytesResumable(storageRef, file.buffer, metadata);
 			const downloadURL = await getDownloadURL(snapshot.ref);
-			console.log('File successfully uploaded.');
 	
 			await updateImagesPositionPost(position, categoryId);
 			const newImage = new Image({ url: downloadURL, name, description, position, categoryId });
@@ -59,7 +58,7 @@ export async function postImage(req, res) {
 			await updateImagesPositionPost(position, categoryId);
 			const newImage = new Image({ url: urlVideo, name, description, position, categoryId });
 			await newImage.save();
-			return res.status(200).send('recived video '+ urlVideo);
+			res.status(201).send(newImage);
 		}
 
 	} catch (err) {
