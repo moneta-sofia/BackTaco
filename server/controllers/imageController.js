@@ -21,7 +21,7 @@ export async function getAllImagesByCategory(req, res) {
 }
 
 export async function postImage(req, res) {
-	const { name, description, position, urlVideo } = req.body;
+	const { name, descriptionESP, descriptionENG, position, urlVideo } = req.body;
 	const file = req.file;
 	const { categoryName } = req.params;
 
@@ -51,12 +51,12 @@ export async function postImage(req, res) {
 			const downloadURL = await getDownloadURL(snapshot.ref);
 	
 			await updateImagesPositionPost(position, categoryId);
-			const newImage = new Image({ url: downloadURL, name, description, position, categoryId });
+			const newImage = new Image({ url: downloadURL, name, descriptionESP, descriptionENG, position, categoryId });
 			await newImage.save();
 			res.status(201).send(newImage);
 		} else if (urlVideo) {
 			await updateImagesPositionPost(position, categoryId);
-			const newImage = new Image({ url: urlVideo, name, description, position, categoryId });
+			const newImage = new Image({ url: urlVideo, name, descriptionESP, descriptionENG, position, categoryId });
 			await newImage.save();
 			res.status(201).send(newImage);
 		}
@@ -79,7 +79,7 @@ async function updateImagesPositionPost(initialPosition, categoryId) {
 
 export async function updateImage(req, res) {
 	const { idImage } = req.params;
-	const { name, description, position } = req.body;
+	const { name, descriptionESP, descriptionENG, position } = req.body;
 	try {
 		const image = await Image.findById(idImage);
 		if (!image) {
@@ -88,7 +88,7 @@ export async function updateImage(req, res) {
 		await updateImagesPositionUpdate(image.position, position, image.categoryId);
 		const updatedImage = await Image.findByIdAndUpdate(
 			idImage,
-			{ name, description, position },
+			{ name, descriptionESP, descriptionENG, position },
 			{ new: true, runValidators: true } // Opciones para devolver el documento actualizado y ejecutar validadores
 		);
 		res.send(updatedImage);

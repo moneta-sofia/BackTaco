@@ -10,7 +10,8 @@ const imageSchema = new Schema({
 		type: String,
 		required: true,
 	},
-	description: String,
+	descriptionESP: String,
+	descriptionENG: String,
 	position: {
 		type: Number,
 		required: true,
