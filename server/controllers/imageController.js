@@ -1,9 +1,29 @@
 import { Category } from '../db/models/category.js';
 import { Image } from '../db/models/image.js';
-import { storage } from '../src/config/firebase.config.js';
-import {ObjectId} from 'mongodb'
-import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ObjectId } from 'mongodb'
+import { supabase, SUPABASE_BUCKET } from '../src/config/supabase.config.js';
+// import { storage } from '../src/config/firebase.config.js';
+// import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 
+
+function sanitizeFileName(name) {
+	return name
+		.toLowerCase()
+		.trim()
+		.replace(/\s+/g, '-')
+		.replace(/[^a-z0-9-_]/g, '');
+}
+function getFileExtension(mimetype) {
+	const extensions = {
+		'image/jpeg': 'jpg',
+		'image/jpg': 'jpg',
+		'image/png': 'png',
+		'image/webp': 'webp',
+		'image/gif': 'gif',
+	};
+
+	return extensions[mimetype] || 'jpg';
+}
 export async function getAllImagesByCategory(req, res) {
 	const { categoryName } = req.params;
 	try {
@@ -26,30 +46,39 @@ export async function postImage(req, res) {
 	const { categoryName } = req.params;
 
 	if (!position) {
-		return res.status(400).send('Position is required' );
+		return res.status(400).send('Position is required');
 	}
 	if (!name) {
-		return res.status(400).send('Position is required' );
+		return res.status(400).send('Position is required');
 	}
 
 	if (!file && !urlVideo) {
-		return res.status(400).send('No file or video uploaded.' );
+		return res.status(400).send('No file or video uploaded.');
 	}
 
 	try {
 		const category = await Category.findOne({ name: categoryName });
-		const categoryId = category._id;
 		if (!category) {
 			return res.status(404).send('Cannot upload an image if the category does not exist');
 		}
+		const categoryId = category._id;
 		if (file) {
-			const storageRef = ref(storage, `files/${categoryName}/${name + Date.now()}`);
+
+			const extension = getFileExtension(file.mimetype);
+			const safeName = sanitizeFileName(name);
+
+			const filePath = `files/${categoryName}/${safeName}-${Date.now()}.${extension}`;
+
+
 			const metadata = {
 				contentType: file.mimetype,
 			};
-			const snapshot = await uploadBytesResumable(storageRef, file.buffer, metadata);
-			const downloadURL = await getDownloadURL(snapshot.ref);
-	
+
+			const { data } = supabase.storage
+				.from(SUPABASE_BUCKET)
+				.getPublicUrl(filePath);
+			const downloadURL = data.publicUrl;
+
 			await updateImagesPositionPost(position, categoryId);
 			const newImage = new Image({ url: downloadURL, name, descriptionESP, descriptionENG, position, categoryId });
 			await newImage.save();
@@ -116,28 +145,34 @@ async function updateImagesPositionUpdate(initialPosition, finalPosition, catego
 }
 
 export async function updateAllImagesPosition(req, res) {
-    const { categoryName } = req.params;
-    const updatedImages = req.body;
-    try {
-        const category = await Category.findOne({ name: categoryName });
-        if (!category) {
-            return res.status(404).send('Category not found');
-        }
+	const { categoryName } = req.params;
+	const updatedImages = req.body;
+	try {
+		const category = await Category.findOne({ name: categoryName });
+		if (!category) {
+			return res.status(404).send('Category not found');
+		}
 		let arrayUpdateImage = Object.values(updatedImages)
-        const bulkOps = arrayUpdateImage.map(({ _id, position }) => (
-            {   updateOne: {
-                filter: { _id: {_id} },
-                update: { $set: {position} }
-            }
-        }));
+		const bulkOps = arrayUpdateImage.map(({ _id, position }) => (
+			{
+				updateOne: {
+					filter: { _id: { _id } },
+					update: { $set: { position } }
+				}
+			}));
 
-        const result = await Image.bulkWrite(bulkOps);		
-        res.status(200).send("Positions edited successfully " + JSON.stringify(result));	
-        
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Error updating image positions');
-    }
+		const result = await Image.bulkWrite(bulkOps);
+		res.status(200).send("Positions edited successfully " + JSON.stringify(result));
+
+	} catch (error) {
+		console.error(error);
+		res.status(500).send('Error updating image positions');
+	}
+}
+
+function getSupabasePathFromUrl(url) {
+	const marker = `/storage/v1/object/public/${SUPABASE_BUCKET}/`;
+	return url.split(marker)[1];
 }
 
 export async function deleteImage(req, res) {
@@ -147,19 +182,25 @@ export async function deleteImage(req, res) {
 		if (!image) {
 			return res.status(404).send('Image not found');
 		}
-		if(image.url.includes('https://www.youtube.com/')  || image.url.includes('https://youtu.be/')){
+		if (image.url.includes('https://www.youtube.com/') || image.url.includes('https://youtu.be/')) {
 			await updateImagesPositionDelete(image);
 			const result = await Image.findByIdAndDelete(idImage);
 			res.send('Image deleted: ' + result);
 			return
 		} else {
-			const filePath = image.url.split('/o/')[1].split('?')[0];
-			const desertRef = ref(storage, decodeURIComponent(filePath));
-			await deleteObject(desertRef);
+			
+			const filePath = image.storagePath || getSupabasePathFromUrl(image.url);
+
+			if (!filePath) {
+				console.log('No Supabase file path found for image:', image.url);
+				return;
+			}
+
+			await supabase.storage.from(SUPABASE_BUCKET).remove([filePath]);
 			await updateImagesPositionDelete(image);
-	
+
 			const result = await Image.findByIdAndDelete(idImage);
-			res.send('video deleted: ' + result);
+			res.send('Deleted: ' + result);
 			return
 		}
 
