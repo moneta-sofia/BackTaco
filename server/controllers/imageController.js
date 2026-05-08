@@ -74,6 +74,24 @@ export async function postImage(req, res) {
 				contentType: file.mimetype,
 			};
 
+			const { error: uploadError } = await supabase.storage
+				.from(SUPABASE_BUCKET)
+				.upload(filePath, file.buffer, {
+					contentType: file.mimetype,
+					upsert: false,
+				});
+
+			if (uploadError) {
+				console.error('Supabase upload error:', uploadError);
+
+				return res.status(500).json({
+					message: uploadError.message,
+					statusCode: uploadError.statusCode,
+					error: uploadError.error,
+					details: uploadError.details,
+				});
+			}
+
 			const { data } = supabase.storage
 				.from(SUPABASE_BUCKET)
 				.getPublicUrl(filePath);
